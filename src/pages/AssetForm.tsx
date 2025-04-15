@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { getAssetById, createAsset, updateAsset } from "@/services/assetService";
 
 // Form schema
 const assetFormSchema = z.object({
@@ -54,7 +54,12 @@ const AssetForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isEditMode = !!id;
+  const [isLoading, setIsLoading] = useState(false);
   
+  // Mock data for dropdowns
+  const categories = ["Electronics", "Furniture", "Office Equipment", "IT Hardware", "Software Licenses"];
+  const statuses = ["In Use", "In Storage", "Under Repair", "Disposed"];
+
   // Form state
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
@@ -70,22 +75,66 @@ const AssetForm = () => {
     },
   });
 
-  // Mock data for dropdowns
-  const categories = ["Electronics", "Furniture", "Office Equipment", "IT Hardware", "Software Licenses"];
-  const statuses = ["In Use", "In Storage", "Under Repair", "Disposed"];
+  // Load asset data if in edit mode
+  useEffect(() => {
+    if (isEditMode && id) {
+      const asset = getAssetById(id);
+      if (asset) {
+        form.reset({
+          name: asset.name,
+          category: asset.category,
+          location: asset.location,
+          status: asset.status,
+          assignedTo: asset.assignedTo || "",
+          purchaseDate: asset.purchaseDate || "",
+          purchasePrice: asset.purchasePrice || "",
+          notes: asset.notes || "",
+        });
+      } else {
+        toast({
+          title: "Asset Not Found",
+          description: "The requested asset could not be found.",
+          variant: "destructive",
+        });
+        navigate("/assets");
+      }
+    }
+  }, [id, isEditMode, form, navigate, toast]);
 
   // Submit handler
   const onSubmit = (data: AssetFormValues) => {
-    console.log("Form submitted:", data);
+    setIsLoading(true);
     
-    // In a real app, this would be an API call
-    setTimeout(() => {
-      toast({
-        title: isEditMode ? "Asset Updated" : "Asset Created",
-        description: `Successfully ${isEditMode ? "updated" : "created"} ${data.name}`,
-      });
+    try {
+      if (isEditMode && id) {
+        // Update existing asset
+        updateAsset({
+          id,
+          ...data,
+        });
+        toast({
+          title: "Asset Updated",
+          description: `Successfully updated ${data.name}`,
+        });
+      } else {
+        // Create new asset
+        createAsset(data);
+        toast({
+          title: "Asset Created",
+          description: `Successfully created ${data.name}`,
+        });
+      }
       navigate("/assets");
-    }, 500);
+    } catch (error) {
+      console.error("Error saving asset:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save asset. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -273,10 +322,11 @@ const AssetForm = () => {
                   type="button"
                   variant="outline"
                   onClick={() => navigate("/assets")}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={isLoading}>
                   <Save className="mr-2 h-4 w-4" />
                   {isEditMode ? "Update Asset" : "Create Asset"}
                 </Button>

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -34,103 +33,26 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-
-// Mock asset data
-const mockAssets = [
-  { 
-    id: "A-1001", 
-    name: "MacBook Pro 16\"", 
-    category: "Electronics", 
-    location: "HQ - Floor 2", 
-    status: "In Use", 
-    assignedTo: "John Doe",
-    purchaseDate: "2023-01-15", 
-    purchasePrice: "$2,499.00"
-  },
-  { 
-    id: "A-1002", 
-    name: "Standing Desk", 
-    category: "Furniture", 
-    location: "HQ - Floor 1", 
-    status: "In Use", 
-    assignedTo: "Jane Smith",
-    purchaseDate: "2023-02-20", 
-    purchasePrice: "$350.00"
-  },
-  { 
-    id: "A-1003", 
-    name: "Projector", 
-    category: "Office Equipment", 
-    location: "Conference Room A", 
-    status: "In Use", 
-    assignedTo: "Meeting Room A",
-    purchaseDate: "2022-11-05", 
-    purchasePrice: "$799.00"
-  },
-  { 
-    id: "A-1004", 
-    name: "Server Rack", 
-    category: "IT Hardware", 
-    location: "Server Room", 
-    status: "In Use", 
-    assignedTo: "IT Department",
-    purchaseDate: "2022-08-30", 
-    purchasePrice: "$1,200.00"
-  },
-  { 
-    id: "A-1005", 
-    name: "Office Chair", 
-    category: "Furniture", 
-    location: "HQ - Floor 3", 
-    status: "In Storage", 
-    assignedTo: "Unassigned",
-    purchaseDate: "2023-03-10", 
-    purchasePrice: "$180.00"
-  },
-  { 
-    id: "A-1006", 
-    name: "Printer/Scanner", 
-    category: "Office Equipment", 
-    location: "HQ - Floor 2", 
-    status: "Under Repair", 
-    assignedTo: "Marketing Team",
-    purchaseDate: "2022-05-15", 
-    purchasePrice: "$450.00"
-  },
-  { 
-    id: "A-1007", 
-    name: "Software License - Adobe CC", 
-    category: "Software Licenses", 
-    location: "Digital Asset", 
-    status: "In Use", 
-    assignedTo: "Design Team",
-    purchaseDate: "2023-04-01", 
-    purchasePrice: "$599.99/yr"
-  },
-  { 
-    id: "A-1008", 
-    name: "Smartphone - iPhone 13", 
-    category: "Electronics", 
-    location: "Mobile", 
-    status: "In Use", 
-    assignedTo: "Alex Johnson",
-    purchaseDate: "2022-10-12", 
-    purchasePrice: "$999.00"
-  },
-];
+import { getAssets, deleteAsset, type Asset } from "@/services/assetService";
+import { useToast } from "@/hooks/use-toast";
 
 const Assets = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
 
-  // Filter assets based on search term and filters
-  const filteredAssets = mockAssets.filter(asset => {
+  useEffect(() => {
+    const loadedAssets = getAssets();
+    setAssets(loadedAssets);
+  }, []);
+
+  const filteredAssets = assets.filter(asset => {
     const matchesSearch = 
       searchTerm === "" || 
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -142,9 +64,8 @@ const Assets = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Extract unique categories and statuses for filters
-  const categories = Array.from(new Set(mockAssets.map(asset => asset.category)));
-  const statuses = Array.from(new Set(mockAssets.map(asset => asset.status)));
+  const categories = Array.from(new Set(assets.map(asset => asset.category)));
+  const statuses = Array.from(new Set(assets.map(asset => asset.status)));
 
   const handleDeleteClick = (id: string) => {
     setSelectedAssetId(id);
@@ -152,10 +73,16 @@ const Assets = () => {
   };
 
   const handleDeleteConfirm = () => {
-    // In a real app, this would call an API to delete the asset
-    console.log(`Deleting asset with ID: ${selectedAssetId}`);
-    setDeleteDialogOpen(false);
-    setSelectedAssetId(null);
+    if (selectedAssetId) {
+      deleteAsset(selectedAssetId);
+      setAssets(getAssets());
+      toast({
+        title: "Asset Deleted",
+        description: "The asset has been successfully deleted.",
+      });
+      setDeleteDialogOpen(false);
+      setSelectedAssetId(null);
+    }
   };
 
   const handleCategoryChange = (value: string) => {
@@ -192,7 +119,6 @@ const Assets = () => {
           </div>
         </div>
 
-        {/* Filters and Search */}
         <div className="mb-6 grid gap-4 md:grid-cols-4">
           <div className="relative md:col-span-2">
             <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -240,7 +166,6 @@ const Assets = () => {
           </Select>
         </div>
 
-        {/* Assets Table */}
         <div className="overflow-hidden rounded-lg border">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -356,7 +281,6 @@ const Assets = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
