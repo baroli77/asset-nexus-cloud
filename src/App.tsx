@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/Assets";
+import AssetForm from "./pages/AssetForm";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
 import AuditLog from "./pages/AuditLog";
@@ -34,6 +35,8 @@ const App = () => (
           {/* Protected Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/assets" element={<Assets />} />
+          <Route path="/assets/new" element={<AssetForm />} />
+          <Route path="/assets/:id" element={<AssetForm />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/audit-log" element={<AuditLog />} />
           <Route path="/data-fields" element={<DataFields />} />

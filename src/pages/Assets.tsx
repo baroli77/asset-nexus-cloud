@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,6 +122,7 @@ const mockAssets = [
 ];
 
 const Assets = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -183,7 +185,7 @@ const Assets = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button onClick={() => window.location.href = "/assets/new"}>
+            <Button onClick={() => navigate("/assets/new")}>
               <Plus className="mr-2 h-4 w-4" />
               New Asset
             </Button>
@@ -325,7 +327,7 @@ const Assets = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => window.location.href = `/assets/${asset.id}`}>
+                          <DropdownMenuItem onClick={() => navigate(`/assets/${asset.id}`)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
@@ -345,7 +347,7 @@ const Assets = () => {
           {filteredAssets.length === 0 && (
             <div className="p-8 text-center">
               <p className="text-muted-foreground">No assets found. Try adjusting your filters or create a new asset.</p>
-              <Button className="mt-4" onClick={() => window.location.href = "/assets/new"}>
+              <Button className="mt-4" onClick={() => navigate("/assets/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Asset
               </Button>
