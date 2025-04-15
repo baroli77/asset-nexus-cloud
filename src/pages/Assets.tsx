@@ -156,6 +156,14 @@ const Assets = () => {
     setSelectedAssetId(null);
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value === "all" ? null : value);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value === "all" ? null : value);
+  };
+
   return (
     <MainLayout>
       <div className="animate-fade-in">
@@ -195,7 +203,7 @@ const Assets = () => {
             />
           </div>
           
-          <Select onValueChange={(value) => setSelectedCategory(value || null)}>
+          <Select onValueChange={handleCategoryChange} defaultValue="all">
             <SelectTrigger>
               <div className="flex items-center">
                 <Filter className="mr-2 h-4 w-4" />
@@ -203,7 +211,7 @@ const Assets = () => {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -212,7 +220,7 @@ const Assets = () => {
             </SelectContent>
           </Select>
           
-          <Select onValueChange={(value) => setSelectedStatus(value || null)}>
+          <Select onValueChange={handleStatusChange} defaultValue="all">
             <SelectTrigger>
               <div className="flex items-center">
                 <Filter className="mr-2 h-4 w-4" />
@@ -220,7 +228,7 @@ const Assets = () => {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               {statuses.map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}
