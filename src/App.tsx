@@ -11,6 +11,11 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/Assets";
 import NotFound from "./pages/NotFound";
+import Reports from "./pages/Reports";
+import AuditLog from "./pages/AuditLog";
+import DataFields from "./pages/DataFields";
+import UserManagement from "./pages/UserManagement";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +34,11 @@ const App = () => (
           {/* Protected Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/assets" element={<Assets />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/audit-log" element={<AuditLog />} />
+          <Route path="/data-fields" element={<DataFields />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/settings" element={<Settings />} />
           
           {/* Catch-all route for 404s */}
           <Route path="*" element={<NotFound />} />
