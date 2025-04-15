@@ -18,8 +18,12 @@ const AuditLog = () => {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
 
   useEffect(() => {
+    // Load audit logs from localStorage
     const logs = getAuditLogs();
     setAuditLogs(logs);
+    
+    // For debugging
+    console.log("Loaded audit logs:", logs);
   }, []);
 
   const getActionColor = (action: string) => {

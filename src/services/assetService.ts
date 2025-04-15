@@ -1,4 +1,3 @@
-
 // Mock asset data
 const defaultAssets = [
   { 
@@ -137,9 +136,13 @@ export const getAssetById = (id: string): Asset | undefined => {
 // Create a new asset
 export const createAsset = (asset: Omit<Asset, 'id'>): Asset => {
   const assets = getAssets();
-  const newAsset = {
+  
+  // Generate a new ID
+  const newId = `A-${1000 + assets.length + 1}`;
+  
+  const newAsset: Asset = {
     ...asset,
-    id: `A-${1000 + assets.length + 1}`,
+    id: newId,
   };
   
   const updatedAssets = [...assets, newAsset];
@@ -159,6 +162,12 @@ export const createAsset = (asset: Omit<Asset, 'id'>): Asset => {
 // Update an existing asset
 export const updateAsset = (asset: Asset): Asset => {
   const assets = getAssets();
+  const originalAsset = assets.find(a => a.id === asset.id);
+  
+  if (!originalAsset) {
+    throw new Error(`Asset with ID ${asset.id} not found`);
+  }
+  
   const updatedAssets = assets.map(a => a.id === asset.id ? asset : a);
   localStorage.setItem('assets', JSON.stringify(updatedAssets));
   
@@ -178,18 +187,20 @@ export const deleteAsset = (id: string): void => {
   const assets = getAssets();
   const assetToDelete = assets.find(a => a.id === id);
   
-  if (assetToDelete) {
-    const updatedAssets = assets.filter(a => a.id !== id);
-    localStorage.setItem('assets', JSON.stringify(updatedAssets));
-    
-    // Log this action
-    addAuditLog({
-      action: 'Deleted',
-      assetId: id,
-      assetName: assetToDelete.name,
-      details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
-    });
+  if (!assetToDelete) {
+    throw new Error(`Asset with ID ${id} not found`);
   }
+  
+  const updatedAssets = assets.filter(a => a.id !== id);
+  localStorage.setItem('assets', JSON.stringify(updatedAssets));
+  
+  // Log this action
+  addAuditLog({
+    action: 'Deleted',
+    assetId: id,
+    assetName: assetToDelete.name,
+    details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
+  });
 };
 
 // Get all audit logs

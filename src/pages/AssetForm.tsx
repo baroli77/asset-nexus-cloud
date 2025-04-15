@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,7 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getAssetById, createAsset, updateAsset } from "@/services/assetService";
+import { getAssetById, createAsset, updateAsset, Asset } from "@/services/assetService";
 
 // Form schema
 const assetFormSchema = z.object({
@@ -107,18 +108,34 @@ const AssetForm = () => {
     
     try {
       if (isEditMode && id) {
-        // Update existing asset
+        // Update existing asset - make sure we provide all required fields
         updateAsset({
           id,
-          ...data,
+          name: data.name,
+          category: data.category,
+          location: data.location,
+          status: data.status,
+          assignedTo: data.assignedTo,
+          purchaseDate: data.purchaseDate,
+          purchasePrice: data.purchasePrice,
+          notes: data.notes,
         });
         toast({
           title: "Asset Updated",
           description: `Successfully updated ${data.name}`,
         });
       } else {
-        // Create new asset
-        createAsset(data);
+        // Create new asset - make sure we provide all required fields
+        createAsset({
+          name: data.name,
+          category: data.category,
+          location: data.location,
+          status: data.status,
+          assignedTo: data.assignedTo,
+          purchaseDate: data.purchaseDate,
+          purchasePrice: data.purchasePrice,
+          notes: data.notes,
+        });
         toast({
           title: "Asset Created",
           description: `Successfully created ${data.name}`,

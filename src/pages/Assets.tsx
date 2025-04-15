@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -47,9 +48,14 @@ const Assets = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Load assets from localStorage
+  const loadAssets = () => {
     const loadedAssets = getAssets();
     setAssets(loadedAssets);
+  };
+
+  useEffect(() => {
+    loadAssets();
   }, []);
 
   const filteredAssets = assets.filter(asset => {
@@ -74,12 +80,23 @@ const Assets = () => {
 
   const handleDeleteConfirm = () => {
     if (selectedAssetId) {
-      deleteAsset(selectedAssetId);
-      setAssets(getAssets());
-      toast({
-        title: "Asset Deleted",
-        description: "The asset has been successfully deleted.",
-      });
+      try {
+        deleteAsset(selectedAssetId);
+        loadAssets(); // Refresh the asset list
+        
+        toast({
+          title: "Asset Deleted",
+          description: "The asset has been successfully deleted.",
+        });
+      } catch (error) {
+        console.error("Error deleting asset:", error);
+        toast({
+          title: "Delete Failed",
+          description: "There was an error deleting the asset.",
+          variant: "destructive",
+        });
+      }
+      
       setDeleteDialogOpen(false);
       setSelectedAssetId(null);
     }
