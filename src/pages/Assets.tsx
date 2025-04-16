@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const Assets = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Load assets from localStorage
-  const loadAssets = () => {
+  const loadAssets = useCallback(() => {
     try {
       setIsLoading(true);
       const loadedAssets = getAssets();
@@ -67,12 +67,11 @@ const Assets = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     loadAssets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadAssets]);
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = 
@@ -94,10 +93,13 @@ const Assets = () => {
     setDeleteDialogOpen(true);
   };
 
-  const resetDeleteState = () => {
-    setIsDeleting(false);
-    setSelectedAssetId(null);
+  const closeDeleteDialog = () => {
     setDeleteDialogOpen(false);
+    // Use a small timeout to ensure the dialog closes properly before resetting other states
+    setTimeout(() => {
+      setSelectedAssetId(null);
+      setIsDeleting(false);
+    }, 100);
   };
 
   const handleDeleteConfirm = async () => {
@@ -120,8 +122,15 @@ const Assets = () => {
         description: "The asset has been successfully deleted.",
       });
       
-      // Reset states completely before closing the dialog
-      resetDeleteState();
+      // Close the dialog first and then reset states with a slight delay
+      setDeleteDialogOpen(false);
+      
+      // Use a small timeout to ensure the dialog closes properly before resetting other states
+      setTimeout(() => {
+        setSelectedAssetId(null);
+        setIsDeleting(false);
+      }, 100);
+      
     } catch (error) {
       console.error("Error deleting asset:", error);
       toast({
@@ -131,7 +140,7 @@ const Assets = () => {
       });
       
       // Reset states on error too
-      resetDeleteState();
+      closeDeleteDialog();
     }
   };
 
@@ -313,7 +322,10 @@ const Assets = () => {
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteClick(asset.id)}>
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClick(asset.id)}
+                                disabled={isDeleting}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
                               </DropdownMenuItem>
@@ -345,55 +357,60 @@ const Assets = () => {
         )}
       </div>
 
-      <Dialog 
-        open={deleteDialogOpen} 
-        onOpenChange={(open) => {
-          if (!isDeleting && !open) {
-            resetDeleteState();
-          }
-        }}
-      >
-        <DialogContent onPointerDownOutside={(e) => {
-          // Prevent closing the dialog by clicking outside while deletion is in progress
-          if (isDeleting) {
-            e.preventDefault();
-          }
-        }}>
-          <DialogHeader>
-            <DialogTitle>Delete Asset</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this asset? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                if (!isDeleting) {
-                  resetDeleteState();
-                }
-              }} 
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteConfirm} 
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Completely separate dialog that will be unmounted properly when closed */}
+      {deleteDialogOpen && (
+        <Dialog 
+          open={deleteDialogOpen} 
+          onOpenChange={(open) => {
+            if (!open && !isDeleting) {
+              closeDeleteDialog();
+            }
+          }}
+        >
+          <DialogContent 
+            onPointerDownOutside={(e) => {
+              if (isDeleting) {
+                e.preventDefault();
+              }
+            }}
+            onEscapeKeyDown={(e) => {
+              if (isDeleting) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Delete Asset</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this asset? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={closeDeleteDialog} 
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteConfirm} 
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </MainLayout>
   );
 };
