@@ -89,58 +89,63 @@ const Assets = () => {
   const statuses = Array.from(new Set(assets.map(asset => asset.status)));
 
   const handleDeleteClick = (id: string) => {
+    if (isDeleting) return; // Prevent multiple clicks during deletion
     setSelectedAssetId(id);
     setDeleteDialogOpen(true);
   };
 
   const closeDeleteDialog = () => {
+    if (isDeleting) return; // Prevent closing during deletion
     setDeleteDialogOpen(false);
-    // Use a small timeout to ensure the dialog closes properly before resetting other states
+    // Clear the selected asset ID only after dialog is closed
     setTimeout(() => {
       setSelectedAssetId(null);
-      setIsDeleting(false);
-    }, 100);
+    }, 150);
   };
 
+  // Completely rewritten delete function
   const handleDeleteConfirm = async () => {
     if (!selectedAssetId || isDeleting) return;
     
     setIsDeleting(true);
     
     try {
-      // Store the ID before deletion for state updates
+      // Store a local copy of the ID before deletion
       const idToDelete = selectedAssetId;
-      
-      // Perform the deletion
+
+      // Attempt to delete the asset
       await deleteAsset(idToDelete);
       
-      // Update the state after successful deletion
+      // Update the local state to reflect the deleted asset
       setAssets(prevAssets => prevAssets.filter(asset => asset.id !== idToDelete));
       
-      toast({
-        title: "Asset Deleted",
-        description: "The asset has been successfully deleted.",
-      });
-      
-      // Close the dialog first and then reset states with a slight delay
+      // First close the dialog
       setDeleteDialogOpen(false);
       
-      // Use a small timeout to ensure the dialog closes properly before resetting other states
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Asset has been deleted successfully.",
+      });
+      
+      // Reset states after a delay
       setTimeout(() => {
-        setSelectedAssetId(null);
         setIsDeleting(false);
-      }, 100);
+        setSelectedAssetId(null);
+      }, 200);
       
     } catch (error) {
       console.error("Error deleting asset:", error);
+      
+      // Show error toast
       toast({
-        title: "Delete Failed",
-        description: "There was an error deleting the asset.",
+        title: "Error",
+        description: "Failed to delete the asset. Please try again.",
         variant: "destructive",
       });
       
-      // Reset states on error too
-      closeDeleteDialog();
+      // Reset states
+      setIsDeleting(false);
     }
   };
 
@@ -357,60 +362,58 @@ const Assets = () => {
         )}
       </div>
 
-      {/* Completely separate dialog that will be unmounted properly when closed */}
-      {deleteDialogOpen && (
-        <Dialog 
-          open={deleteDialogOpen} 
-          onOpenChange={(open) => {
-            if (!open && !isDeleting) {
-              closeDeleteDialog();
+      {/* Create fresh dialog each time */}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            closeDeleteDialog();
+          }
+        }}
+      >
+        <DialogContent 
+          onPointerDownOutside={(e) => {
+            if (isDeleting) {
+              e.preventDefault();
+            }
+          }}
+          onEscapeKeyDown={(e) => {
+            if (isDeleting) {
+              e.preventDefault();
             }
           }}
         >
-          <DialogContent 
-            onPointerDownOutside={(e) => {
-              if (isDeleting) {
-                e.preventDefault();
-              }
-            }}
-            onEscapeKeyDown={(e) => {
-              if (isDeleting) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <DialogHeader>
-              <DialogTitle>Delete Asset</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this asset? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={closeDeleteDialog} 
-                disabled={isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteConfirm} 
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  "Delete"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+          <DialogHeader>
+            <DialogTitle>Delete Asset</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this asset? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={closeDeleteDialog} 
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm} 
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

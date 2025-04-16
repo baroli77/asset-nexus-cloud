@@ -204,39 +204,45 @@ export const updateAsset = (asset: Asset): Asset => {
 };
 
 // Delete an asset
-export const deleteAsset = (id: string): boolean => {
-  try {
-    const assets = getAssets();
-    const assetToDelete = assets.find(a => a.id === id);
-    
-    if (!assetToDelete) {
-      throw new Error(`Asset with ID ${id} not found`);
-    }
-    
-    const updatedAssets = assets.filter(a => a.id !== id);
-    
-    // Store the updated assets list without the deleted asset
-    localStorage.setItem('assets', JSON.stringify(updatedAssets));
-    
-    // Log this action in a way that won't block
-    setTimeout(() => {
-      try {
-        addAuditLog({
-          action: 'Deleted',
-          assetId: id,
-          assetName: assetToDelete.name,
-          details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
-        });
-      } catch (logError) {
-        console.error("Error logging deletion:", logError);
+export const deleteAsset = (id: string): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const assets = getAssets();
+      const assetToDelete = assets.find(a => a.id === id);
+      
+      if (!assetToDelete) {
+        throw new Error(`Asset with ID ${id} not found`);
       }
-    }, 0);
-    
-    return true;
-  } catch (error) {
-    console.error("Error during asset deletion:", error);
-    throw error;
-  }
+      
+      const updatedAssets = assets.filter(a => a.id !== id);
+      
+      // Store the updated assets list without the deleted asset
+      localStorage.setItem('assets', JSON.stringify(updatedAssets));
+      
+      // Log audit entry asynchronously
+      setTimeout(() => {
+        try {
+          addAuditLog({
+            action: 'Deleted',
+            assetId: id,
+            assetName: assetToDelete.name,
+            details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
+          });
+        } catch (logError) {
+          console.error("Error logging deletion:", logError);
+          // Don't block deletion if audit logging fails
+        }
+      }, 0);
+      
+      // Resolve after a small delay to ensure UI updates
+      setTimeout(() => {
+        resolve(true);
+      }, 100);
+    } catch (error) {
+      console.error("Error during asset deletion:", error);
+      reject(error);
+    }
+  });
 };
 
 // Get all audit logs
