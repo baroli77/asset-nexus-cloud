@@ -1,3 +1,4 @@
+
 // Mock asset data
 const defaultAssets = [
   { 
@@ -123,77 +124,97 @@ const initializeAuditLogs = () => {
 // Get all assets
 export const getAssets = (): Asset[] => {
   initializeAssets();
-  const assets = localStorage.getItem('assets');
-  return assets ? JSON.parse(assets) : [];
+  try {
+    const assets = localStorage.getItem('assets');
+    return assets ? JSON.parse(assets) : [];
+  } catch (error) {
+    console.error("Error getting assets:", error);
+    return [];
+  }
 };
 
 // Get asset by ID
 export const getAssetById = (id: string): Asset | undefined => {
-  const assets = getAssets();
-  return assets.find(asset => asset.id === id);
+  try {
+    const assets = getAssets();
+    return assets.find(asset => asset.id === id);
+  } catch (error) {
+    console.error("Error getting asset by ID:", error);
+    return undefined;
+  }
 };
 
 // Create a new asset
 export const createAsset = (asset: Omit<Asset, 'id'>): Asset => {
-  const assets = getAssets();
-  
-  // Generate a new ID
-  const newId = `A-${1000 + assets.length + 1}`;
-  
-  const newAsset: Asset = {
-    ...asset,
-    id: newId,
-  };
-  
-  const updatedAssets = [...assets, newAsset];
-  localStorage.setItem('assets', JSON.stringify(updatedAssets));
-  
-  // Log this action
-  addAuditLog({
-    action: 'Created',
-    assetId: newAsset.id,
-    assetName: newAsset.name,
-    details: `Created new asset: ${newAsset.name} (${newAsset.category})`
-  });
-  
-  return newAsset;
+  try {
+    const assets = getAssets();
+    
+    // Generate a new ID
+    const newId = `A-${1000 + assets.length + 1}`;
+    
+    const newAsset: Asset = {
+      ...asset,
+      id: newId,
+    };
+    
+    const updatedAssets = [...assets, newAsset];
+    localStorage.setItem('assets', JSON.stringify(updatedAssets));
+    
+    // Log this action
+    addAuditLog({
+      action: 'Created',
+      assetId: newAsset.id,
+      assetName: newAsset.name,
+      details: `Created new asset: ${newAsset.name} (${newAsset.category})`
+    });
+    
+    return newAsset;
+  } catch (error) {
+    console.error("Error creating asset:", error);
+    throw error;
+  }
 };
 
 // Update an existing asset
 export const updateAsset = (asset: Asset): Asset => {
-  const assets = getAssets();
-  const originalAsset = assets.find(a => a.id === asset.id);
-  
-  if (!originalAsset) {
-    throw new Error(`Asset with ID ${asset.id} not found`);
+  try {
+    const assets = getAssets();
+    const originalAsset = assets.find(a => a.id === asset.id);
+    
+    if (!originalAsset) {
+      throw new Error(`Asset with ID ${asset.id} not found`);
+    }
+    
+    const updatedAssets = assets.map(a => a.id === asset.id ? asset : a);
+    localStorage.setItem('assets', JSON.stringify(updatedAssets));
+    
+    // Log this action
+    addAuditLog({
+      action: 'Updated',
+      assetId: asset.id,
+      assetName: asset.name,
+      details: `Updated asset: ${asset.name} (${asset.category})`
+    });
+    
+    return asset;
+  } catch (error) {
+    console.error("Error updating asset:", error);
+    throw error;
   }
-  
-  const updatedAssets = assets.map(a => a.id === asset.id ? asset : a);
-  localStorage.setItem('assets', JSON.stringify(updatedAssets));
-  
-  // Log this action
-  addAuditLog({
-    action: 'Updated',
-    assetId: asset.id,
-    assetName: asset.name,
-    details: `Updated asset: ${asset.name} (${asset.category})`
-  });
-  
-  return asset;
 };
 
 // Delete an asset
-export const deleteAsset = (id: string): void => {
-  const assets = getAssets();
-  const assetToDelete = assets.find(a => a.id === id);
-  
-  if (!assetToDelete) {
-    throw new Error(`Asset with ID ${id} not found`);
-  }
-  
-  const updatedAssets = assets.filter(a => a.id !== id);
-  
+export const deleteAsset = (id: string): boolean => {
   try {
+    const assets = getAssets();
+    const assetToDelete = assets.find(a => a.id === id);
+    
+    if (!assetToDelete) {
+      throw new Error(`Asset with ID ${id} not found`);
+    }
+    
+    const updatedAssets = assets.filter(a => a.id !== id);
+    
     // Store the updated assets list without the deleted asset
     localStorage.setItem('assets', JSON.stringify(updatedAssets));
     
@@ -204,6 +225,8 @@ export const deleteAsset = (id: string): void => {
       assetName: assetToDelete.name,
       details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
     });
+    
+    return true;
   } catch (error) {
     console.error("Error during asset deletion:", error);
     throw error;
@@ -213,35 +236,53 @@ export const deleteAsset = (id: string): void => {
 // Get all audit logs
 export const getAuditLogs = (): AuditEntry[] => {
   initializeAuditLogs();
-  const logs = localStorage.getItem('auditLogs');
-  return logs ? JSON.parse(logs) : [];
+  try {
+    const logs = localStorage.getItem('auditLogs');
+    return logs ? JSON.parse(logs) : [];
+  } catch (error) {
+    console.error("Error getting audit logs:", error);
+    return [];
+  }
 };
 
 // Add a new audit log entry
 export const addAuditLog = (logData: Omit<AuditEntry, 'id' | 'timestamp' | 'user'>): AuditEntry => {
-  const logs = getAuditLogs();
-  
-  // Mock user from sidebar component
-  const mockUser = {
-    name: "Demo User",
-    email: "demo@example.com",
-    role: "Admin"
-  };
-  
-  const newLog: AuditEntry = {
-    id: `LOG-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    user: mockUser.name,
-    ...logData
-  };
-  
-  const updatedLogs = [newLog, ...logs];
-  
   try {
-    localStorage.setItem('auditLogs', JSON.stringify(updatedLogs));
+    const logs = getAuditLogs();
+    
+    // Mock user from sidebar component
+    const mockUser = {
+      name: "Demo User",
+      email: "demo@example.com",
+      role: "Admin"
+    };
+    
+    const newLog: AuditEntry = {
+      id: `LOG-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      user: mockUser.name,
+      ...logData
+    };
+    
+    const updatedLogs = [newLog, ...logs];
+    
+    try {
+      localStorage.setItem('auditLogs', JSON.stringify(updatedLogs));
+    } catch (error) {
+      console.error("Error adding audit log:", error);
+    }
+    
+    return newLog;
   } catch (error) {
     console.error("Error adding audit log:", error);
+    return {
+      id: `LOG-ERROR-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      user: "System",
+      action: "Error",
+      assetId: logData.assetId,
+      assetName: logData.assetName,
+      details: "Failed to log action due to an error"
+    };
   }
-  
-  return newLog;
 };
