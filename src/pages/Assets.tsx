@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -47,6 +46,7 @@ const Assets = () => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load assets from localStorage
   const loadAssets = () => {
@@ -79,10 +79,13 @@ const Assets = () => {
   };
 
   const handleDeleteConfirm = () => {
-    if (selectedAssetId) {
+    if (selectedAssetId && !isDeleting) {
+      setIsDeleting(true);
+      
       try {
         deleteAsset(selectedAssetId);
-        loadAssets(); // Refresh the asset list
+        
+        loadAssets();
         
         toast({
           title: "Asset Deleted",
@@ -95,10 +98,11 @@ const Assets = () => {
           description: "There was an error deleting the asset.",
           variant: "destructive",
         });
+      } finally {
+        setDeleteDialogOpen(false);
+        setSelectedAssetId(null);
+        setIsDeleting(false);
       }
-      
-      setDeleteDialogOpen(false);
-      setSelectedAssetId(null);
     }
   };
 
@@ -307,11 +311,11 @@ const Assets = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -192,15 +192,22 @@ export const deleteAsset = (id: string): void => {
   }
   
   const updatedAssets = assets.filter(a => a.id !== id);
-  localStorage.setItem('assets', JSON.stringify(updatedAssets));
   
-  // Log this action
-  addAuditLog({
-    action: 'Deleted',
-    assetId: id,
-    assetName: assetToDelete.name,
-    details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
-  });
+  try {
+    // Store the updated assets list without the deleted asset
+    localStorage.setItem('assets', JSON.stringify(updatedAssets));
+    
+    // Log this action
+    addAuditLog({
+      action: 'Deleted',
+      assetId: id,
+      assetName: assetToDelete.name,
+      details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
+    });
+  } catch (error) {
+    console.error("Error during asset deletion:", error);
+    throw error;
+  }
 };
 
 // Get all audit logs
@@ -229,7 +236,12 @@ export const addAuditLog = (logData: Omit<AuditEntry, 'id' | 'timestamp' | 'user
   };
   
   const updatedLogs = [newLog, ...logs];
-  localStorage.setItem('auditLogs', JSON.stringify(updatedLogs));
+  
+  try {
+    localStorage.setItem('auditLogs', JSON.stringify(updatedLogs));
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
   
   return newLog;
 };

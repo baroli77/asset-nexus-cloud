@@ -16,14 +16,21 @@ import { format } from "date-fns";
 
 const AuditLog = () => {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load audit logs from localStorage
-    const logs = getAuditLogs();
-    setAuditLogs(logs);
-    
-    // For debugging
-    console.log("Loaded audit logs:", logs);
+    try {
+      // Load audit logs from localStorage
+      const logs = getAuditLogs();
+      setAuditLogs(logs);
+      
+      // For debugging
+      console.log("Loaded audit logs:", logs);
+    } catch (error) {
+      console.error("Error loading audit logs:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const getActionColor = (action: string) => {
@@ -69,7 +76,12 @@ const AuditLog = () => {
               Each action is recorded with the user who performed it, the date and time, and the specific changes made.
             </p>
             
-            {auditLogs.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-8 border rounded-md bg-muted/10">
+                <History className="h-12 w-12 mx-auto text-muted-foreground mb-2 animate-spin" />
+                <p className="text-muted-foreground">Loading audit logs...</p>
+              </div>
+            ) : auditLogs.length === 0 ? (
               <div className="text-center py-8 border rounded-md bg-muted/10">
                 <History className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                 <p className="text-muted-foreground">No activity has been recorded yet.</p>
