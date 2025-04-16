@@ -94,21 +94,34 @@ const Assets = () => {
     setDeleteDialogOpen(true);
   };
 
+  const resetDeleteState = () => {
+    setIsDeleting(false);
+    setSelectedAssetId(null);
+    setDeleteDialogOpen(false);
+  };
+
   const handleDeleteConfirm = async () => {
     if (!selectedAssetId || isDeleting) return;
     
     setIsDeleting(true);
     
     try {
-      await deleteAsset(selectedAssetId);
+      // Store the ID before deletion for state updates
+      const idToDelete = selectedAssetId;
       
-      // Update the state to remove the deleted asset
-      setAssets(prevAssets => prevAssets.filter(asset => asset.id !== selectedAssetId));
+      // Perform the deletion
+      await deleteAsset(idToDelete);
+      
+      // Update the state after successful deletion
+      setAssets(prevAssets => prevAssets.filter(asset => asset.id !== idToDelete));
       
       toast({
         title: "Asset Deleted",
         description: "The asset has been successfully deleted.",
       });
+      
+      // Reset states completely before closing the dialog
+      resetDeleteState();
     } catch (error) {
       console.error("Error deleting asset:", error);
       toast({
@@ -117,12 +130,8 @@ const Assets = () => {
         variant: "destructive",
       });
       
-      // Reload assets to ensure consistent state
-      loadAssets();
-    } finally {
-      setDeleteDialogOpen(false);
-      setSelectedAssetId(null);
-      setIsDeleting(false);
+      // Reset states on error too
+      resetDeleteState();
     }
   };
 
@@ -248,77 +257,84 @@ const Assets = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAssets.map((asset, index) => (
-                    <tr 
-                      key={asset.id} 
-                      className={`border-t transition-colors hover:bg-muted/50 ${
-                        index % 2 === 0 ? "bg-background" : "bg-muted/25"
-                      }`}
-                    >
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-medium">
-                        {asset.id}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.name}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.category}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.location}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        <span 
-                          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                            asset.status === "In Use" 
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
-                              : asset.status === "In Storage"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                              : asset.status === "Under Repair"
-                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                          }`}
-                        >
-                          {asset.status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.assignedTo}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.purchaseDate}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        {asset.purchasePrice}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/assets/${asset.id}`)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteClick(asset.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {filteredAssets.length > 0 ? (
+                    filteredAssets.map((asset, index) => (
+                      <tr 
+                        key={asset.id} 
+                        className={`border-t transition-colors hover:bg-muted/50 ${
+                          index % 2 === 0 ? "bg-background" : "bg-muted/25"
+                        }`}
+                      >
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium">
+                          {asset.id}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.name}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.category}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.location}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          <span 
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                              asset.status === "In Use" 
+                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
+                                : asset.status === "In Storage"
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                : asset.status === "Under Repair"
+                                ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                            }`}
+                          >
+                            {asset.status}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.assignedTo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.purchaseDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          {asset.purchasePrice}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/assets/${asset.id}`)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteClick(asset.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                        No assets found. Try adjusting your filters or create a new asset.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
             
             {filteredAssets.length === 0 && !isLoading && (
               <div className="p-8 text-center">
-                <p className="text-muted-foreground">No assets found. Try adjusting your filters or create a new asset.</p>
                 <Button className="mt-4" onClick={() => navigate("/assets/new")}>
                   <Plus className="mr-2 h-4 w-4" />
                   New Asset
@@ -329,12 +345,20 @@ const Assets = () => {
         )}
       </div>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
-        if (!isDeleting) {
-          setDeleteDialogOpen(open);
-        }
-      }}>
-        <DialogContent>
+      <Dialog 
+        open={deleteDialogOpen} 
+        onOpenChange={(open) => {
+          if (!isDeleting && !open) {
+            resetDeleteState();
+          }
+        }}
+      >
+        <DialogContent onPointerDownOutside={(e) => {
+          // Prevent closing the dialog by clicking outside while deletion is in progress
+          if (isDeleting) {
+            e.preventDefault();
+          }
+        }}>
           <DialogHeader>
             <DialogTitle>Delete Asset</DialogTitle>
             <DialogDescription>
@@ -342,14 +366,22 @@ const Assets = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              if (!isDeleting) {
-                setDeleteDialogOpen(false);
-              }
-            }} disabled={isDeleting}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (!isDeleting) {
+                  resetDeleteState();
+                }
+              }} 
+              disabled={isDeleting}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={isDeleting}>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm} 
+              disabled={isDeleting}
+            >
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

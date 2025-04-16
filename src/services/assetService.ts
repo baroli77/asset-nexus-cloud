@@ -218,13 +218,18 @@ export const deleteAsset = (id: string): boolean => {
     // Store the updated assets list without the deleted asset
     localStorage.setItem('assets', JSON.stringify(updatedAssets));
     
-    // Log this action
-    addAuditLog({
-      action: 'Deleted',
-      assetId: id,
-      assetName: assetToDelete.name,
-      details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
-    });
+    // Log this action - but don't wait for it, as it's non-critical
+    try {
+      addAuditLog({
+        action: 'Deleted',
+        assetId: id,
+        assetName: assetToDelete.name,
+        details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
+      });
+    } catch (logError) {
+      console.error("Error logging deletion:", logError);
+      // Continue execution even if logging fails
+    }
     
     return true;
   } catch (error) {
