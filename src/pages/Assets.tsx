@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const Assets = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load assets from localStorage
   const loadAssets = useCallback(() => {
     try {
       setIsLoading(true);
@@ -100,29 +98,21 @@ const Assets = () => {
     }
   };
 
-  // Completely rewritten delete handler to fix the UI hanging issue
   const handleDeleteConfirm = async () => {
     if (!selectedAssetId || isDeleting) return;
     
     setIsDeleting(true);
     
     try {
-      // Find the asset to be deleted
       const assetToDelete = assets.find(asset => asset.id === selectedAssetId);
       if (!assetToDelete) {
         throw new Error("Asset not found");
       }
       
-      // Optimistically update UI
-      setAssets(prevAssets => prevAssets.filter(asset => asset.id !== selectedAssetId));
-      
-      // Close dialog immediately
-      setDeleteDialogOpen(false);
-      
-      // Perform actual deletion
       await deleteAsset(selectedAssetId);
       
-      // Show success notification
+      window.location.reload();
+      
       toast({
         title: "Asset Deleted",
         description: `${assetToDelete.name} has been deleted successfully.`,
@@ -130,19 +120,15 @@ const Assets = () => {
     } catch (error) {
       console.error("Error deleting asset:", error);
       
-      // Reload assets to restore correct state
-      loadAssets();
-      
-      // Show error notification
       toast({
         title: "Error",
         description: "Failed to delete the asset. Please try again.",
         variant: "destructive",
       });
     } finally {
-      // Reset state
       setIsDeleting(false);
       setSelectedAssetId(null);
+      setDeleteDialogOpen(false);
     }
   };
 
