@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -88,59 +89,61 @@ const Assets = () => {
   const statuses = Array.from(new Set(assets.map(asset => asset.status)));
 
   const handleDeleteClick = (id: string) => {
-    if (isDeleting) return; // Prevent multiple clicks during deletion
     setSelectedAssetId(id);
     setDeleteDialogOpen(true);
   };
 
   const closeDeleteDialog = () => {
-    if (isDeleting) return; // Prevent closing during deletion
-    setDeleteDialogOpen(false);
-    setSelectedAssetId(null);
+    if (!isDeleting) {
+      setDeleteDialogOpen(false);
+      setSelectedAssetId(null);
+    }
   };
 
-  // Completely rewritten delete function to fix the hanging issue
-  const handleDeleteConfirm = () => {
+  // Completely rewritten delete handler to fix the UI hanging issue
+  const handleDeleteConfirm = async () => {
     if (!selectedAssetId || isDeleting) return;
     
     setIsDeleting(true);
     
-    // First, find and store the asset ID that will be deleted
-    const idToDelete = selectedAssetId;
-    
-    // Optimistically update UI by removing the asset from local state
-    setAssets(prevAssets => prevAssets.filter(asset => asset.id !== idToDelete));
-    
-    // Close the dialog immediately
-    setDeleteDialogOpen(false);
-    
-    // Perform the actual deletion in the background
-    deleteAsset(idToDelete)
-      .then(() => {
-        // Show success notification
-        toast({
-          title: "Success",
-          description: "Asset has been deleted successfully.",
-        });
-      })
-      .catch(error => {
-        console.error("Error deleting asset:", error);
-        
-        // If deletion failed, reload assets to restore correct state
-        loadAssets();
-        
-        // Show error notification
-        toast({
-          title: "Error",
-          description: "Failed to delete the asset. Please try again.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        // Reset deletion state
-        setIsDeleting(false);
-        setSelectedAssetId(null);
+    try {
+      // Find the asset to be deleted
+      const assetToDelete = assets.find(asset => asset.id === selectedAssetId);
+      if (!assetToDelete) {
+        throw new Error("Asset not found");
+      }
+      
+      // Optimistically update UI
+      setAssets(prevAssets => prevAssets.filter(asset => asset.id !== selectedAssetId));
+      
+      // Close dialog immediately
+      setDeleteDialogOpen(false);
+      
+      // Perform actual deletion
+      await deleteAsset(selectedAssetId);
+      
+      // Show success notification
+      toast({
+        title: "Asset Deleted",
+        description: `${assetToDelete.name} has been deleted successfully.`,
       });
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      
+      // Reload assets to restore correct state
+      loadAssets();
+      
+      // Show error notification
+      toast({
+        title: "Error",
+        description: "Failed to delete the asset. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      // Reset state
+      setIsDeleting(false);
+      setSelectedAssetId(null);
+    }
   };
 
   const handleCategoryChange = (value: string) => {

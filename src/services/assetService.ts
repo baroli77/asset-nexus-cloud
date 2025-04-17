@@ -206,7 +206,7 @@ export const updateAsset = (asset: Asset): Asset => {
 export const deleteAsset = (id: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     try {
-      // Get assets before deletion to find the one being deleted
+      // Get current assets
       const assets = getAssets();
       const assetToDelete = assets.find(a => a.id === id);
       
@@ -215,32 +215,27 @@ export const deleteAsset = (id: string): Promise<boolean> => {
         return;
       }
       
-      // Remove the asset from the array
+      // Remove from array
       const updatedAssets = assets.filter(a => a.id !== id);
       
-      // Update localStorage with the filtered array
+      // Update localStorage immediately
       localStorage.setItem('assets', JSON.stringify(updatedAssets));
       
-      // Log the deletion action (but don't wait for it to complete)
-      setTimeout(() => {
-        try {
-          addAuditLog({
-            action: 'Deleted',
-            assetId: id,
-            assetName: assetToDelete.name,
-            details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
-          });
-        } catch (logError) {
-          console.error("Error logging deletion:", logError);
-          // Don't block deletion if audit logging fails
-        }
-      }, 0);
+      // Log the deletion
+      try {
+        addAuditLog({
+          action: 'Deleted',
+          assetId: id,
+          assetName: assetToDelete.name,
+          details: `Deleted asset: ${assetToDelete.name} (${assetToDelete.category})`
+        });
+      } catch (logError) {
+        console.error("Error logging deletion:", logError);
+        // Continue with deletion even if logging fails
+      }
       
-      // Always resolve with success after a short delay
-      // This ensures localStorage has time to update
-      setTimeout(() => {
-        resolve(true);
-      }, 50);
+      // Resolve immediately after localStorage update
+      resolve(true);
     } catch (error) {
       console.error("Error during asset deletion:", error);
       reject(error);
