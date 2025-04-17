@@ -1,4 +1,3 @@
-
 // Mock asset data
 const defaultAssets = [
   { 
@@ -203,23 +202,26 @@ export const updateAsset = (asset: Asset): Asset => {
   }
 };
 
-// Delete an asset
+// Delete an asset - completely rewritten for reliability
 export const deleteAsset = (id: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     try {
+      // Get assets before deletion to find the one being deleted
       const assets = getAssets();
       const assetToDelete = assets.find(a => a.id === id);
       
       if (!assetToDelete) {
-        throw new Error(`Asset with ID ${id} not found`);
+        reject(new Error(`Asset with ID ${id} not found`));
+        return;
       }
       
+      // Remove the asset from the array
       const updatedAssets = assets.filter(a => a.id !== id);
       
-      // Store the updated assets list without the deleted asset
+      // Update localStorage with the filtered array
       localStorage.setItem('assets', JSON.stringify(updatedAssets));
       
-      // Log audit entry asynchronously
+      // Log the deletion action (but don't wait for it to complete)
       setTimeout(() => {
         try {
           addAuditLog({
@@ -234,10 +236,11 @@ export const deleteAsset = (id: string): Promise<boolean> => {
         }
       }, 0);
       
-      // Resolve after a small delay to ensure UI updates
+      // Always resolve with success after a short delay
+      // This ensures localStorage has time to update
       setTimeout(() => {
         resolve(true);
-      }, 100);
+      }, 50);
     } catch (error) {
       console.error("Error during asset deletion:", error);
       reject(error);
