@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -42,10 +41,8 @@ const Assets = () => {
         setAssets(assetsData);
       } catch (error) {
         console.error("Error fetching assets:", error);
-        toast("Error fetching assets", {
+        toast.error("Error fetching assets", {
           description: "Could not retrieve the asset list.",
-          // Using the correct type for toast from sonner
-          type: "error"
         });
       } finally {
         setLoading(false);
@@ -59,15 +56,13 @@ const Assets = () => {
     try {
       await deleteAsset(id);
       setAssets(assets.filter((asset) => asset.id !== id));
-      toast("Asset deleted", {
+      toast.success("Asset deleted", {
         description: "The asset has been successfully deleted.",
       });
     } catch (error) {
       console.error("Error deleting asset:", error);
-      toast("Error deleting asset", {
+      toast.error("Error deleting asset", {
         description: "Failed to delete the asset.",
-        // Using the correct type for toast from sonner
-        type: "error"
       });
     }
   };
