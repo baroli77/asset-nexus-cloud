@@ -26,29 +26,38 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getAssetById, createAsset, updateAsset, Asset } from "@/services/assetService";
+import { getAssetById, createAsset, updateAsset } from "@/services/assetService";
+import { getDataFields } from "@/services/dataFieldService";
+import { DataField } from "@/components/datafields/DataFieldTable";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQuery } from "@tanstack/react-query";
 
-// Form schema
-const assetFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Asset name must be at least 2 characters.",
-  }),
-  category: z.string({
-    required_error: "Please select a category.",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  status: z.string({
-    required_error: "Please select a status.",
-  }),
-  assignedTo: z.string().optional(),
-  purchaseDate: z.string().optional(),
-  purchasePrice: z.string().optional(),
-  notes: z.string().optional(),
-});
+// Update the form schema to include dynamic custom fields
+const createAssetFormSchema = () => {
+  const baseSchema = {
+    name: z.string().min(2, {
+      message: "Asset name must be at least 2 characters.",
+    }),
+    category: z.string({
+      required_error: "Please select a category.",
+    }),
+    location: z.string().min(2, {
+      message: "Location must be at least 2 characters.",
+    }),
+    status: z.string({
+      required_error: "Please select a status.",
+    }),
+    assignedTo: z.string().optional(),
+    purchaseDate: z.string().optional(),
+    purchasePrice: z.string().optional(),
+    notes: z.string().optional(),
+    customFields: z.record(z.any()).optional(),
+  };
 
-type AssetFormValues = z.infer<typeof assetFormSchema>;
+  return z.object(baseSchema);
+};
+
+type AssetFormValues = z.infer<ReturnType<typeof createAssetFormSchema>>;
 
 const AssetForm = () => {
   const { id } = useParams();
@@ -57,13 +66,19 @@ const AssetForm = () => {
   const isEditMode = !!id;
   const [isLoading, setIsLoading] = useState(false);
   
+  // Fetch custom data fields
+  const { data: dataFields = [] } = useQuery({
+    queryKey: ['dataFields'],
+    queryFn: getDataFields,
+  });
+  
   // Mock data for dropdowns
   const categories = ["Electronics", "Furniture", "Office Equipment", "IT Hardware", "Software Licenses"];
   const statuses = ["In Use", "In Storage", "Under Repair", "Disposed"];
 
   // Form state
   const form = useForm<AssetFormValues>({
-    resolver: zodResolver(assetFormSchema),
+    resolver: zodResolver(createAssetFormSchema()),
     defaultValues: {
       name: "",
       category: "",
@@ -73,6 +88,7 @@ const AssetForm = () => {
       purchaseDate: "",
       purchasePrice: "",
       notes: "",
+      customFields: {},
     },
   });
 
@@ -90,6 +106,7 @@ const AssetForm = () => {
           purchaseDate: asset.purchaseDate || "",
           purchasePrice: asset.purchasePrice || "",
           notes: asset.notes || "",
+          customFields: asset.customFields || {},
         });
       } else {
         toast({
@@ -108,7 +125,7 @@ const AssetForm = () => {
     
     try {
       if (isEditMode && id) {
-        // Update existing asset - make sure we provide all required fields
+        // Update existing asset
         updateAsset({
           id,
           name: data.name,
@@ -119,13 +136,14 @@ const AssetForm = () => {
           purchaseDate: data.purchaseDate,
           purchasePrice: data.purchasePrice,
           notes: data.notes,
+          customFields: data.customFields,
         });
         toast({
           title: "Asset Updated",
           description: `Successfully updated ${data.name}`,
         });
       } else {
-        // Create new asset - make sure we provide all required fields
+        // Create new asset
         createAsset({
           name: data.name,
           category: data.category,
@@ -135,6 +153,7 @@ const AssetForm = () => {
           purchaseDate: data.purchaseDate,
           purchasePrice: data.purchasePrice,
           notes: data.notes,
+          customFields: data.customFields,
         });
         toast({
           title: "Asset Created",
@@ -151,6 +170,132 @@ const AssetForm = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to render custom field based on its type
+  const renderCustomField = (field: DataField) => {
+    const fieldValue = form.watch(`customFields.${field.name}`);
+    
+    switch (field.type) {
+      case "text":
+        return (
+          <FormField
+            key={field.id}
+            control={form.control}
+            name={`customFields.${field.name}`}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && <span className="text-destructive">*</span>}</FormLabel>
+                <FormControl>
+                  <Input {...formField} placeholder={`Enter ${field.label.toLowerCase()}`} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+        
+      case "number":
+        return (
+          <FormField
+            key={field.id}
+            control={form.control}
+            name={`customFields.${field.name}`}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && <span className="text-destructive">*</span>}</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...formField} 
+                    value={formField.value || ''} 
+                    onChange={(e) => formField.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder={`Enter ${field.label.toLowerCase()}`} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+        
+      case "date":
+        return (
+          <FormField
+            key={field.id}
+            control={form.control}
+            name={`customFields.${field.name}`}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && <span className="text-destructive">*</span>}</FormLabel>
+                <FormControl>
+                  <Input type="date" {...formField} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+        
+      case "select":
+        return (
+          <FormField
+            key={field.id}
+            control={form.control}
+            name={`customFields.${field.name}`}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && <span className="text-destructive">*</span>}</FormLabel>
+                <Select 
+                  onValueChange={formField.onChange} 
+                  defaultValue={formField.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {field.options?.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+        
+      case "checkbox":
+        return (
+          <FormField
+            key={field.id}
+            control={form.control}
+            name={`customFields.${field.name}`}
+            render={({ field: formField }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={formField.value}
+                    onCheckedChange={formField.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    {field.label} {field.required && <span className="text-destructive">*</span>}
+                  </FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
+        );
+        
+      default:
+        return null;
     }
   };
 
@@ -183,6 +328,7 @@ const AssetForm = () => {
         <div className="max-w-2xl mx-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic asset information */}
               <FormField
                 control={form.control}
                 name="name"
@@ -315,6 +461,18 @@ const AssetForm = () => {
                   )}
                 />
               </div>
+
+              {/* Custom Fields Section */}
+              {dataFields.length > 0 && (
+                <div className="space-y-6">
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium mb-4">Custom Fields</h3>
+                    <div className="space-y-4">
+                      {dataFields.map(renderCustomField)}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

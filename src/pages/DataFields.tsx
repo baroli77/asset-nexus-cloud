@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import DataFieldTable from "@/components/datafields/DataFieldTable";
+import DataFieldTable, { DataField } from "@/components/datafields/DataFieldTable";
 import DataFieldForm from "@/components/datafields/DataFieldForm";
 import DeleteDataFieldDialog from "@/components/datafields/DeleteDataFieldDialog";
 import { 
