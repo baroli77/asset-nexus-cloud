@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,8 @@ const Assets = () => {
         console.error("Error fetching assets:", error);
         toast("Error fetching assets", {
           description: "Could not retrieve the asset list.",
-          variant: "destructive",
+          // Using the correct type for toast from sonner
+          type: "error"
         });
       } finally {
         setLoading(false);
@@ -64,7 +66,8 @@ const Assets = () => {
       console.error("Error deleting asset:", error);
       toast("Error deleting asset", {
         description: "Failed to delete the asset.",
-        variant: "destructive",
+        // Using the correct type for toast from sonner
+        type: "error"
       });
     }
   };
