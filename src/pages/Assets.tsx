@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Edit, Trash2, Plus, Search, Package } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAssets, deleteAsset, type Asset } from "@/services/assetService";
+import { getAssets, deleteAsset, type Asset, addAuditLogEntry } from "@/services/assetService";
 import { toast } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -41,8 +41,7 @@ const Assets = () => {
         setAssets(assetsData);
       } catch (error) {
         console.error("Error fetching assets:", error);
-        toast({
-          title: "Error fetching assets",
+        toast("Error fetching assets", {
           description: "Could not retrieve the asset list.",
           variant: "destructive",
         });
@@ -58,14 +57,12 @@ const Assets = () => {
     try {
       await deleteAsset(id);
       setAssets(assets.filter((asset) => asset.id !== id));
-      toast({
-        title: "Asset deleted",
+      toast("Asset deleted", {
         description: "The asset has been successfully deleted.",
       });
     } catch (error) {
       console.error("Error deleting asset:", error);
-      toast({
-        title: "Error deleting asset",
+      toast("Error deleting asset", {
         description: "Failed to delete the asset.",
         variant: "destructive",
       });
