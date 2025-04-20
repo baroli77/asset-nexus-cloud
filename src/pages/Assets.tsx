@@ -1,13 +1,13 @@
-
 import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Import, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAssets, deleteAsset, type Asset } from "@/services/assetService";
+import { getAssets, deleteAsset, createAsset, type Asset } from "@/services/assetService";
 import { toast } from "sonner";
 import AssetSearch from "@/components/assets/AssetSearch";
 import AssetsTable from "@/components/assets/AssetsTable";
+import { downloadCSV, readCSV } from "@/utils/csvUtils";
 
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -57,6 +57,36 @@ const Assets = () => {
     asset.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExportAssets = () => {
+    downloadCSV(assets, 'assets.csv');
+    toast.success("Assets exported successfully");
+  };
+
+  const handleImportAssets = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedAssets = await readCSV(file);
+      
+      for (const asset of importedAssets) {
+        await createAsset(asset);
+      }
+      
+      const updatedAssets = await getAssets();
+      setAssets(updatedAssets);
+      
+      toast.success(`Successfully imported ${importedAssets.length} assets`);
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error("Failed to import assets", {
+        description: "Please check your CSV file format"
+      });
+    }
+    
+    event.target.value = '';
+  };
+
   return (
     <MainLayout>
       <div className="animate-fade-in">
@@ -69,12 +99,30 @@ const Assets = () => {
           </div>
           <div className="flex gap-4">
             <AssetSearch ref={searchRef} onSearch={handleSearch} />
-            <Button asChild>
-              <Link to="/assets/new">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Asset
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleExportAssets}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+              <Button variant="outline" asChild>
+                <label className="cursor-pointer">
+                  <Import className="w-4 h-4 mr-2" />
+                  Import
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={handleImportAssets}
+                  />
+                </label>
+              </Button>
+              <Button asChild>
+                <Link to="/assets/new">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Asset
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet } from "lucide-react";
+import { downloadCSV } from "@/utils/csvUtils";
+import { toast } from "sonner";
 
 const AuditLog = () => {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
@@ -46,6 +49,16 @@ const AuditLog = () => {
     }
   };
 
+  const handleExportAuditLog = () => {
+    try {
+      downloadCSV(auditLogs, 'audit_log.csv');
+      toast.success("Audit log exported successfully");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export audit log");
+    }
+  };
+
   return (
     <MainLayout>
       <div className="animate-fade-in">
@@ -56,6 +69,10 @@ const AuditLog = () => {
               Track all changes made to assets across your organization
             </p>
           </div>
+          <Button variant="outline" onClick={handleExportAuditLog}>
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Export Log
+          </Button>
         </div>
         
         <Card className="mb-6">
