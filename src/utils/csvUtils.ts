@@ -1,3 +1,4 @@
+
 import { Asset, AuditEntry } from "@/services/assetService";
 import { AssetMetrics } from "@/services/reportService";
 
@@ -49,16 +50,25 @@ const csvToArray = (csv: string): any[] => {
 
 // Download data as CSV file
 export const downloadCSV = (data: any[], filename: string) => {
+  if (!data || !data.length) return;
+  
   const csv = arrayToCSV(data);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a'); // Changed from 'link' to 'a'
   const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url); // Clean up the URL object
+  
+  // Clean up the URL object to avoid memory leaks
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 100);
 };
 
 // Read CSV file

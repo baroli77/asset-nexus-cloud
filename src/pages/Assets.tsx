@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -58,8 +59,20 @@ const Assets = () => {
   );
 
   const handleExportAssets = () => {
-    downloadCSV(assets, 'assets.csv');
-    toast.success("Assets exported successfully");
+    try {
+      if (!assets || assets.length === 0) {
+        toast.warning("No assets to export");
+        return;
+      }
+      
+      downloadCSV(assets, `assets-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      toast.success("Assets exported successfully");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export assets", {
+        description: "An error occurred during export"
+      });
+    }
   };
 
   const handleImportAssets = async (event: React.ChangeEvent<HTMLInputElement>) => {

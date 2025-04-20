@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,11 +52,18 @@ const AuditLog = () => {
 
   const handleExportAuditLog = () => {
     try {
-      downloadCSV(auditLogs, 'audit_log.csv');
+      if (!auditLogs || auditLogs.length === 0) {
+        toast.warning("No audit logs to export");
+        return;
+      }
+      
+      downloadCSV(auditLogs, `audit-log-export-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success("Audit log exported successfully");
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export audit log");
+      toast.error("Failed to export audit log", {
+        description: "An error occurred during export" 
+      });
     }
   };
 
