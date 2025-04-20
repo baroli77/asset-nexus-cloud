@@ -51,13 +51,14 @@ const csvToArray = (csv: string): any[] => {
 export const downloadCSV = (data: any[], filename: string) => {
   const csv = arrayToCSV(data);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('link');
+  const link = document.createElement('a'); // Changed from 'link' to 'a'
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url); // Clean up the URL object
 };
 
 // Read CSV file

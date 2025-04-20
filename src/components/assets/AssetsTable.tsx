@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Asset } from "@/services/assetService";
 import {
@@ -9,10 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Edit, Package, Trash2 } from "lucide-react";
+import { getStatusColor } from "@/utils/statusColors";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,7 +106,11 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
             <TableCell>{asset.category}</TableCell>
             <TableCell>{asset.location}</TableCell>
             <TableCell>
-              <Badge variant="outline">{asset.status}</Badge>
+              {asset.status && (
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(asset.status).bg} ${getStatusColor(asset.status).text}`}>
+                  {asset.status}
+                </span>
+              )}
             </TableCell>
             <TableCell className="text-right">
               <DropdownMenu>
