@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Asset } from "@/services/assetService";
 import {
@@ -9,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Edit, Package, Trash2 } from "lucide-react";
 import { getStatusColor } from "@/utils/statusColors";
 import {
