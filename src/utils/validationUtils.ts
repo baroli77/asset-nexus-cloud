@@ -1,105 +1,76 @@
 
-import { Asset } from "@/services/assetService";
-import { toast } from "sonner";
-
 export interface ValidationError {
   field: string;
   message: string;
 }
 
-export const validateAsset = (asset: Partial<Asset>, assets: Asset[] = []): ValidationError[] => {
+export const validateAsset = (assetData: any, existingAssets: any[] = []): ValidationError[] => {
   const errors: ValidationError[] = [];
   
-  // Required fields
-  if (!asset.name?.trim()) {
-    errors.push({ field: 'name', message: 'Asset name is required' });
-  }
+  // Required fields validation
+  const requiredFields = ["name", "category", "location", "status"];
+  requiredFields.forEach(field => {
+    if (!assetData[field]) {
+      errors.push({
+        field,
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} is required`
+      });
+    }
+  });
   
-  if (!asset.category?.trim()) {
-    errors.push({ field: 'category', message: 'Category is required' });
-  }
-  
-  if (!asset.location?.trim()) {
-    errors.push({ field: 'location', message: 'Location is required' });
-  }
-  
-  if (!asset.status?.trim()) {
-    errors.push({ field: 'status', message: 'Status is required' });
-  }
-  
-  // Check for duplicate asset names
-  if (asset.name && assets.some(a => a.id !== asset.id && a.name.toLowerCase() === asset.name.toLowerCase())) {
-    errors.push({ field: 'name', message: 'An asset with this name already exists' });
-  }
-  
-  // Price validation
-  if (asset.purchasePrice) {
-    const price = parseFloat(asset.purchasePrice);
-    if (isNaN(price) || price < 0) {
-      errors.push({ field: 'purchasePrice', message: 'Purchase price must be a positive number' });
+  // Name validation
+  if (assetData.name) {
+    // Check for duplicate names
+    if (existingAssets.some(asset => 
+      asset.name.toLowerCase() === assetData.name.toLowerCase() && 
+      asset.id !== assetData.id
+    )) {
+      errors.push({
+        field: "name",
+        message: "An asset with this name already exists"
+      });
+    }
+    
+    // Name length validation
+    if (assetData.name.length < 3) {
+      errors.push({
+        field: "name",
+        message: "Name must be at least 3 characters long"
+      });
+    }
+    
+    if (assetData.name.length > 100) {
+      errors.push({
+        field: "name",
+        message: "Name must be less than 100 characters long"
+      });
     }
   }
   
-  // Date validation
-  if (asset.purchaseDate) {
-    const purchaseDate = new Date(asset.purchaseDate);
-    const today = new Date();
-    
-    if (isNaN(purchaseDate.getTime())) {
-      errors.push({ field: 'purchaseDate', message: 'Invalid purchase date' });
-    } else if (purchaseDate > today) {
-      errors.push({ field: 'purchaseDate', message: 'Purchase date cannot be in the future' });
+  // Validate purchase price if provided
+  if (assetData.purchasePrice && !/^\d+(\.\d{1,2})?$/.test(assetData.purchasePrice)) {
+    errors.push({
+      field: "purchasePrice",
+      message: "Purchase price must be a valid number"
+    });
+  }
+  
+  // Validate purchase date if provided
+  if (assetData.purchaseDate) {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(assetData.purchaseDate)) {
+      errors.push({
+        field: "purchaseDate",
+        message: "Purchase date must be in YYYY-MM-DD format"
+      });
     }
   }
   
   return errors;
 };
 
-export const displayValidationErrors = (errors: ValidationError[]): void => {
-  if (errors.length === 0) return;
+export const displayValidationErrors = (errors: ValidationError[]): string => {
+  if (errors.length === 0) return "";
   
-  if (errors.length === 1) {
-    toast.error(errors[0].message);
-  } else {
-    toast.error(`Validation errors (${errors.length})`, {
-      description: (
-        <ul className="list-disc pl-4 mt-2">
-          {errors.slice(0, 3).map((error, index) => (
-            <li key={index} className="text-sm">{error.message}</li>
-          ))}
-          {errors.length > 3 && <li className="text-sm">...and {errors.length - 3} more</li>}
-        </ul>
-      ),
-    });
-  }
-};
-
-export const checkDuplicateAssets = (
-  assets: Asset[], 
-  fields: ('name' | 'serial_number')[] = ['name']
-): Asset[] => {
-  const duplicates: Asset[] = [];
-  const seen: Record<string, string[]> = {};
-  
-  fields.forEach(field => {
-    seen[field] = [];
-  });
-  
-  assets.forEach(asset => {
-    fields.forEach(field => {
-      let value = field === 'name' 
-        ? asset.name.toLowerCase() 
-        : asset.customFields?.serial_number?.toLowerCase();
-        
-      if (value && seen[field].includes(value)) {
-        if (!duplicates.includes(asset)) {
-          duplicates.push(asset);
-        }
-      } else if (value) {
-        seen[field].push(value);
-      }
-    });
-  });
-  
-  return duplicates;
+  return errors.map(error => error.message).join("\n");
 };

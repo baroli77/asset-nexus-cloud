@@ -17,6 +17,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { validateAsset, displayValidationErrors } from "@/utils/validationUtils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -26,6 +36,11 @@ const Assets = () => {
   const [activeFilters, setActiveFilters] = useState<SearchFilters>({});
   const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
   const [view, setView] = useState<"table" | "grid">("table");
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; assetId: string | null }>({
+    isOpen: false,
+    assetId: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
 
@@ -50,13 +65,28 @@ const Assets = () => {
   }, []);
 
   const handleDelete = async (id: string) => {
+    setDeleteDialog({ isOpen: true, assetId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteDialog.assetId) return;
+    
     try {
-      await deleteAsset(id);
-      const updatedAssets = assets.filter((asset) => asset.id !== id);
+      setIsDeleting(true);
+      await deleteAsset(deleteDialog.assetId);
+      
+      // Update local state after successful deletion
+      const updatedAssets = assets.filter((asset) => asset.id !== deleteDialog.assetId);
       setAssets(updatedAssets);
       setFilteredAssets(prevFiltered => 
-        prevFiltered.filter((asset) => asset.id !== id)
+        prevFiltered.filter((asset) => asset.id !== deleteDialog.assetId)
       );
+      
+      // Update selected assets if needed
+      setSelectedAssets(prevSelected => 
+        prevSelected.filter((asset) => asset.id !== deleteDialog.assetId)
+      );
+      
       toast.success("Asset deleted", {
         description: "The asset has been successfully deleted.",
       });
@@ -65,6 +95,9 @@ const Assets = () => {
       toast.error("Error deleting asset", {
         description: "Failed to delete the asset.",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialog({ isOpen: false, assetId: null });
     }
   };
 
@@ -364,6 +397,33 @@ const Assets = () => {
           </div>
         </div>
       </div>
+      
+      {/* Confirmation Dialog for Delete */}
+      <AlertDialog
+        open={deleteDialog.isOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setDeleteDialog({ isOpen: false, assetId: null });
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Asset</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this asset? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 };

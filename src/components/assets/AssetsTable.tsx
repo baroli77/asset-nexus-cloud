@@ -22,21 +22,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from 'react-router-dom';
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AssetsTableProps {
   assets: Asset[];
   loading: boolean;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
+  selectedAssets: Asset[];
+  onSelectionChange: (assets: Asset[]) => void;
 }
 
-const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) => {
+const AssetsTable: React.FC<AssetsTableProps> = ({ 
+  assets, 
+  loading, 
+  onDelete, 
+  selectedAssets, 
+  onSelectionChange 
+}) => {
   const navigate = useNavigate();
+
+  const isSelected = (asset: Asset) => {
+    return selectedAssets.some(selected => selected.id === asset.id);
+  };
+
+  const toggleSelection = (asset: Asset) => {
+    if (isSelected(asset)) {
+      onSelectionChange(selectedAssets.filter(selected => selected.id !== asset.id));
+    } else {
+      onSelectionChange([...selectedAssets, asset]);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await onDelete(id);
+    } catch (error) {
+      console.error("Error in delete operation:", error);
+    }
+  };
 
   if (loading) {
     return (
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[30px]"></TableHead>
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
@@ -48,6 +78,7 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
         <TableBody>
           {Array.from({ length: 5 }).map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-4" /></TableCell>
               <TableCell><Skeleton className="w-[100px]" /></TableCell>
               <TableCell><Skeleton /></TableCell>
               <TableCell><Skeleton /></TableCell>
@@ -66,6 +97,7 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[30px]"></TableHead>
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
@@ -76,7 +108,7 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell colSpan={6} className="text-center py-8">
+            <TableCell colSpan={7} className="text-center py-8">
               No assets found.
             </TableCell>
           </TableRow>
@@ -89,6 +121,9 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-[30px]">
+            <span className="sr-only">Select</span>
+          </TableHead>
           <TableHead className="w-[100px]">ID</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
@@ -99,7 +134,14 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
       </TableHeader>
       <TableBody>
         {assets.map((asset) => (
-          <TableRow key={asset.id}>
+          <TableRow key={asset.id} className={isSelected(asset) ? "bg-muted/50" : ""}>
+            <TableCell>
+              <Checkbox
+                checked={isSelected(asset)}
+                onCheckedChange={() => toggleSelection(asset)}
+                aria-label={`Select ${asset.name}`}
+              />
+            </TableCell>
             <TableCell className="font-medium">{asset.id}</TableCell>
             <TableCell className="flex items-center gap-2">
               <Package className="w-4 h-4 text-muted-foreground" />
@@ -129,7 +171,10 @@ const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onDelete }) 
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onDelete(asset.id)}>
+                  <DropdownMenuItem 
+                    onClick={() => handleDelete(asset.id)}
+                    className="text-destructive focus:text-destructive"
+                  >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
