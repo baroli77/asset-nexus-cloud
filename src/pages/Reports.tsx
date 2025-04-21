@@ -1,12 +1,16 @@
 
 import { MainLayout } from "@/components/layout/MainLayout";
-import { FileBarChart, FileSpreadsheet } from "lucide-react";
+import { FileBarChart, FileSpreadsheet, FilePieChart } from "lucide-react";
 import { AssetMetricsSummary } from "@/components/reports/AssetMetricsSummary";
 import { AssetDistributionCharts } from "@/components/reports/AssetDistributionCharts";
+import { MaintenanceReport } from "@/components/reports/MaintenanceReport";
+import { FinancialReport } from "@/components/reports/FinancialReport";
+import { UtilizationReport } from "@/components/reports/UtilizationReport";
 import { Button } from "@/components/ui/button";
 import { downloadCSV } from "@/utils/csvUtils";
 import { toast } from "sonner";
 import { getAssetMetrics } from "@/services/reportService";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Reports = () => {
   const handleExportReports = async () => {
@@ -55,11 +59,34 @@ const Reports = () => {
         </div>
 
         <AssetMetricsSummary />
-        <AssetDistributionCharts />
+        
+        <Tabs defaultValue="distribution" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="distribution">Distribution</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger value="utilization">Utilization</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="distribution" className="space-y-4">
+            <AssetDistributionCharts />
+          </TabsContent>
+          
+          <TabsContent value="maintenance" className="space-y-4">
+            <MaintenanceReport />
+          </TabsContent>
+          
+          <TabsContent value="financial" className="space-y-4">
+            <FinancialReport />
+          </TabsContent>
+          
+          <TabsContent value="utilization" className="space-y-4">
+            <UtilizationReport />
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );
 };
 
 export default Reports;
-
