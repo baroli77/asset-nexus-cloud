@@ -1,5 +1,5 @@
 
-import { Bell, Search, Moon, Sun } from "lucide-react";
+import { Search, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 export function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -45,9 +46,7 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationCenter />
         
         <Button variant="ghost" size="icon" onClick={toggleTheme}>
           {theme === "light" ? (

@@ -2,7 +2,7 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,12 +10,31 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
+  // Close sidebar when clicking on the content area on mobile
+  const handleContentClick = () => {
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
+  
+  // Close sidebar when pressing escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [sidebarOpen]);
+  
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Mobile sidebar backdrop */}
       {isMobile && sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50"
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -49,8 +68,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           className={`flex-1 overflow-y-auto p-4 md:p-6 transition-all duration-300 ${
             !isMobile ? 'ml-[240px]' : ''
           }`}
+          onClick={handleContentClick}
         >
-          {children}
+          <div className="animate-fade-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>
