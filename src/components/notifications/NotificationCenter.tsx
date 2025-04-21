@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -8,7 +7,7 @@ import {
   SheetTrigger 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -29,12 +28,10 @@ const NotificationCenter = () => {
   const [open, setOpen] = useState(false);
   
   useEffect(() => {
-    // Load notifications from localStorage
     const storedNotifications = localStorage.getItem('notifications');
     if (storedNotifications) {
       setNotifications(JSON.parse(storedNotifications));
     } else {
-      // If no notifications exist, set some demo notifications
       const demoNotifications: Notification[] = [
         {
           id: '1',
@@ -98,7 +95,6 @@ const NotificationCenter = () => {
     localStorage.setItem('notifications', JSON.stringify([]));
   };
   
-  // Add a new notification (can be called from other components)
   window.addNotification = (
     title: string, 
     message: string, 
@@ -294,7 +290,6 @@ const NotificationCenter = () => {
   );
 };
 
-// Define the notification function on the window object
 declare global {
   interface Window {
     addNotification: (

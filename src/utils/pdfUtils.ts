@@ -108,12 +108,12 @@ export const exportMetricsToPDF = async (metrics: AssetMetrics) => {
   const flattenedMetrics = [
     { key: 'Total Assets', value: metrics.totalAssets },
     { key: 'Total Value', value: `$${metrics.totalValue.toFixed(2)}` },
-    { key: 'Average Age (days)', value: metrics.averageAssetAge },
-    ...Object.entries(metrics.assetsByCategory).map(([category, count]) => ({
+    // Using the correct property names from AssetMetrics interface
+    ...Object.entries(metrics.byCategory).map(([category, count]) => ({
       key: `Category: ${category}`,
       value: count
     })),
-    ...Object.entries(metrics.assetsByStatus).map(([status, count]) => ({
+    ...Object.entries(metrics.byStatus).map(([status, count]) => ({
       key: `Status: ${status}`,
       value: count
     }))
