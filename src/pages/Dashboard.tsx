@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ import {
   Cell,
   Legend
 } from "recharts";
+import { Link } from "react-router-dom";
 
 // Mock data for charts
 const assetCategoryData = [
@@ -97,93 +97,101 @@ const Dashboard = () => {
         {/* Key Stats Section */}
         <section className="dashboard-section">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="card-hover">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Assets
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">
-                    {loading ? (
-                      <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
-                    ) : (
-                      stats.totalAssets
-                    )}
+            <Link to="/assets" className="block">
+              <Card className="card-hover transition-all hover:shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Total Assets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold">
+                      {loading ? (
+                        <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
+                      ) : (
+                        stats.totalAssets
+                      )}
+                    </div>
+                    <div className="rounded-full bg-brand-blue/10 p-2 text-brand-blue">
+                      <Package size={20} />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-brand-blue/10 p-2 text-brand-blue">
-                    <Package size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
             
-            <Card className="card-hover">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">
-                    {loading ? (
-                      <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
-                    ) : (
-                      stats.activeUsers
-                    )}
+            <Link to="/users" className="block">
+              <Card className="card-hover transition-all hover:shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold">
+                      {loading ? (
+                        <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
+                      ) : (
+                        stats.activeUsers
+                      )}
+                    </div>
+                    <div className="rounded-full bg-brand-deepblue/10 p-2 text-brand-deepblue">
+                      <Users size={20} />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-brand-deepblue/10 p-2 text-brand-deepblue">
-                    <Users size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
             
-            <Card className="card-hover">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Maintenance Needed
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">
-                    {loading ? (
-                      <div className="h-8 w-8 animate-pulse bg-gray-200 rounded"></div>
-                    ) : (
-                      stats.maintenanceNeeded
-                    )}
+            <Link to="/reports" className="block">
+              <Card className="card-hover transition-all hover:shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Maintenance Needed
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold">
+                      {loading ? (
+                        <div className="h-8 w-8 animate-pulse bg-gray-200 rounded"></div>
+                      ) : (
+                        stats.maintenanceNeeded
+                      )}
+                    </div>
+                    <div className="rounded-full bg-brand-orange/10 p-2 text-brand-orange">
+                      <AlertTriangle size={20} />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-brand-orange/10 p-2 text-brand-orange">
-                    <AlertTriangle size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
             
-            <Card className="card-hover">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pending Checkouts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">
-                    {loading ? (
-                      <div className="h-8 w-8 animate-pulse bg-gray-200 rounded"></div>
-                    ) : (
-                      stats.checkoutsPending
-                    )}
+            <Link to="/assets" className="block">
+              <Card className="card-hover transition-all hover:shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Pending Checkouts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold">
+                      {loading ? (
+                        <div className="h-8 w-8 animate-pulse bg-gray-200 rounded"></div>
+                      ) : (
+                        stats.checkoutsPending
+                      )}
+                    </div>
+                    <div className="rounded-full bg-brand-cyan/10 p-2 text-brand-cyan">
+                      <Clock size={20} />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-brand-cyan/10 p-2 text-brand-cyan">
-                    <Clock size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </section>
         
