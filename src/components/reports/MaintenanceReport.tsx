@@ -20,8 +20,14 @@ export const MaintenanceReport = () => {
           <CardTitle>Maintenance History</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ChartContainer config={{}}>
+          <div className="h-[300px] w-full">
+            <ChartContainer 
+              className="w-full h-full" 
+              config={{ 
+                scheduled: { color: "#4361ee" }, 
+                emergency: { color: "#f72585" }
+              }}
+            >
               <BarChart data={mockMaintenanceData}>
                 <XAxis dataKey="month" />
                 <YAxis />

@@ -20,8 +20,14 @@ export const FinancialReport = () => {
           <CardTitle>Asset Value & Maintenance Costs</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ChartContainer config={{}}>
+          <div className="h-[300px] w-full">
+            <ChartContainer 
+              className="w-full h-full"
+              config={{ 
+                value: { color: "#4361ee" }, 
+                maintenance: { color: "#f72585" }
+              }}
+            >
               <AreaChart data={mockFinancialData}>
                 <XAxis dataKey="month" />
                 <YAxis />

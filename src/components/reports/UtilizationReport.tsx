@@ -20,8 +20,14 @@ export const UtilizationReport = () => {
           <CardTitle>Asset Utilization Rates</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ChartContainer config={{}}>
+          <div className="h-[300px] w-full">
+            <ChartContainer 
+              className="w-full h-full"
+              config={{ 
+                active: { color: "#4361ee" }, 
+                idle: { color: "#f72585" }
+              }}
+            >
               <LineChart data={mockUtilizationData}>
                 <XAxis dataKey="month" />
                 <YAxis />
