@@ -17,6 +17,7 @@ import {
   Legend
 } from "recharts";
 import { Link } from "react-router-dom";
+import { getUsers } from "@/services/userService";
 
 // Mock data for charts
 const assetCategoryData = [
@@ -63,19 +64,28 @@ const Dashboard = () => {
     checkoutsPending: 0
   });
 
-  // Simulate data loading
+  // Simulate data loading with real user count
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStats({
-        totalAssets: 145,
-        activeUsers: 12,
-        maintenanceNeeded: 5,
-        checkoutsPending: 3
-      });
-      setLoading(false);
-    }, 1000);
+    const fetchData = async () => {
+      try {
+        // Fetch actual user count
+        const users = await getUsers();
+        const activeUserCount = users.filter(user => user.status === "Active").length;
+        
+        setStats({
+          totalAssets: 145, // Still mock data for other stats
+          activeUsers: activeUserCount,
+          maintenanceNeeded: 5,
+          checkoutsPending: 3
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    fetchData();
   }, []);
 
   return (
