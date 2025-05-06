@@ -99,19 +99,19 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
         return false;
       }
       
-      if (filters.status && asset.status !== filters.status) {
+      if (filters.status && filters.status !== "any" && asset.status !== filters.status) {
         return false;
       }
       
-      if (filters.category && asset.category !== filters.category) {
+      if (filters.category && filters.category !== "any" && asset.category !== filters.category) {
         return false;
       }
       
-      if (filters.location && asset.location !== filters.location) {
+      if (filters.location && filters.location !== "any" && asset.location !== filters.location) {
         return false;
       }
       
-      if (filters.assignedTo && asset.assignedTo !== filters.assignedTo) {
+      if (filters.assignedTo && filters.assignedTo !== "any" && asset.assignedTo !== filters.assignedTo) {
         return false;
       }
       
@@ -196,14 +196,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>
               <Select
-                value={filters.status || ''}
+                value={filters.status || 'any'}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any status</SelectItem>
+                  <SelectItem value="any">Any status</SelectItem>
                   {statuses.map(status => (
                     <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
@@ -214,14 +214,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Select
-                value={filters.category || ''}
+                value={filters.category || 'any'}
                 onValueChange={(value) => handleFilterChange('category', value)}
               >
                 <SelectTrigger id="category">
                   <SelectValue placeholder="Any category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any category</SelectItem>
+                  <SelectItem value="any">Any category</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -234,14 +234,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
             <div className="grid gap-2">
               <Label htmlFor="location">Location</Label>
               <Select
-                value={filters.location || ''}
+                value={filters.location || 'any'}
                 onValueChange={(value) => handleFilterChange('location', value)}
               >
                 <SelectTrigger id="location">
                   <SelectValue placeholder="Any location" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any location</SelectItem>
+                  <SelectItem value="any">Any location</SelectItem>
                   {locations.map(location => (
                     <SelectItem key={location} value={location}>{location}</SelectItem>
                   ))}
@@ -252,14 +252,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
             <div className="grid gap-2">
               <Label htmlFor="assignedTo">Assigned To</Label>
               <Select
-                value={filters.assignedTo || ''}
+                value={filters.assignedTo || 'any'}
                 onValueChange={(value) => handleFilterChange('assignedTo', value)}
               >
                 <SelectTrigger id="assignedTo">
                   <SelectValue placeholder="Anyone/Unassigned" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Anyone/Unassigned</SelectItem>
+                  <SelectItem value="any">Anyone/Unassigned</SelectItem>
                   {assignees.map(assignee => (
                     <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
                   ))}
@@ -362,16 +362,17 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
               <Label>Custom Field</Label>
               <div className="grid grid-cols-2 gap-2">
                 <Select
-                  value={filters.customField?.key || ''}
-                  onValueChange={(value) => handleFilterChange('customField', { 
+                  value={filters.customField?.key || 'none'}
+                  onValueChange={(value) => value !== 'none' ? handleFilterChange('customField', { 
                     key: value, 
                     value: filters.customField?.value || '' 
-                  })}
+                  }) : handleRemoveFilter('customField')}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select field" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Select field</SelectItem>
                     {customFieldKeys.map(key => (
                       <SelectItem key={key} value={key}>
                         {key.replace(/_/g, ' ')}
@@ -384,10 +385,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, assets }) => 
                   placeholder="Field value"
                   value={filters.customField?.value || ''}
                   onChange={(e) => handleFilterChange('customField', { 
-                    key: filters.customField?.key || '', 
+                    key: filters.customField?.key || 'none', 
                     value: e.target.value 
                   })}
-                  disabled={!filters.customField?.key}
+                  disabled={!filters.customField?.key || filters.customField?.key === 'none'}
                 />
               </div>
             </div>
